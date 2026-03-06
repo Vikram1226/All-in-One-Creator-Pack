@@ -1,0 +1,1332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>VK Digital – Premium Creator Packs</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,400&display=swap" rel="stylesheet"/>
+
+  <style>
+    :root {
+      --bg:        #080808;
+      --surface:   #111111;
+      --card:      #181818;
+      --border:    #2a2a2a;
+      --gold:      #f0b429;
+      --gold-soft: #ffd97d;
+      --red:       #e53e3e;
+      --red-h:     #c53030;
+      --txt:       #f0f0f0;
+      --muted:     #888;
+      --green:     #38a169;
+      --radius:    14px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--txt);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ─── NOISE OVERLAY ─── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+      background-size: 200px;
+      pointer-events: none;
+      opacity: .5;
+    }
+
+    /* ─── PAGE SYSTEM ─── */
+    .page { display: none; position: relative; z-index: 1; }
+    .page.active { display: block; }
+
+    /* ─── NAV ─── */
+    nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 40px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(8,8,8,.92);
+      backdrop-filter: blur(12px);
+      position: sticky; top: 0; z-index: 999;
+    }
+    .nav-logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 28px;
+      letter-spacing: 3px;
+      background: linear-gradient(135deg, var(--gold), var(--gold-soft));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .nav-links { display: flex; gap: 28px; align-items: center; }
+    .nav-links a {
+      color: var(--muted); text-decoration: none; font-size: 14px;
+      font-weight: 500; letter-spacing: .5px;
+      transition: color .2s;
+    }
+    .nav-links a:hover { color: var(--txt); }
+    .nav-admin-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--gold) !important;
+      padding: 7px 18px;
+      border-radius: 8px;
+      font-size: 13px !important;
+      transition: background .2s, border-color .2s !important;
+    }
+    .nav-admin-btn:hover { background: var(--card) !important; border-color: var(--gold) !important; }
+
+    /* ─── HERO ─── */
+    .hero {
+      text-align: center;
+      padding: 80px 20px 40px;
+      position: relative;
+    }
+    .hero-badge {
+      display: inline-block;
+      background: rgba(240,180,41,.12);
+      border: 1px solid rgba(240,180,41,.3);
+      color: var(--gold);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 6px 18px;
+      border-radius: 50px;
+      margin-bottom: 24px;
+    }
+    .hero h1 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(52px, 8vw, 96px);
+      line-height: 1;
+      letter-spacing: 2px;
+      margin-bottom: 16px;
+    }
+    .hero h1 span {
+      background: linear-gradient(135deg, var(--gold), var(--gold-soft));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .hero p {
+      color: var(--muted); font-size: 17px;
+      max-width: 520px; margin: 0 auto 14px;
+      line-height: 1.7;
+    }
+
+    /* ─── PRODUCT CARD ─── */
+    .product-section {
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 30px 20px 60px;
+    }
+    .product-card {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      overflow: hidden;
+      box-shadow: 0 40px 100px rgba(0,0,0,.6);
+      transition: transform .3s;
+    }
+    .product-card:hover { transform: translateY(-4px); }
+
+    .product-img-wrap {
+      position: relative;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      min-height: 420px;
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
+    }
+    .product-img-wrap::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(circle at 50% 50%, rgba(240,180,41,.15) 0%, transparent 70%);
+    }
+    .product-img-wrap img {
+      width: 80%; max-height: 320px;
+      object-fit: contain;
+      position: relative; z-index: 1;
+      border-radius: 12px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.5);
+    }
+    .product-img-placeholder {
+      display: flex; flex-direction: column;
+      align-items: center; gap: 16px;
+      position: relative; z-index: 1;
+    }
+    .product-img-placeholder .icon {
+      font-size: 80px;
+      filter: drop-shadow(0 0 30px rgba(240,180,41,.4));
+    }
+    .product-img-placeholder span {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 22px; letter-spacing: 3px; color: var(--gold-soft);
+    }
+    .img-tag {
+      position: absolute; top: 20px; left: 20px;
+      background: var(--gold); color: #000;
+      font-size: 11px; font-weight: 700; letter-spacing: 1.5px;
+      padding: 5px 12px; border-radius: 50px;
+      text-transform: uppercase;
+    }
+
+    .product-info {
+      padding: 44px 40px;
+      display: flex; flex-direction: column; justify-content: center;
+    }
+    .product-category {
+      font-size: 11px; font-weight: 700; letter-spacing: 2.5px;
+      text-transform: uppercase; color: var(--gold);
+      margin-bottom: 12px;
+    }
+    .product-name {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(24px, 3vw, 34px);
+      line-height: 1.2;
+      margin-bottom: 14px;
+    }
+    .product-desc {
+      color: var(--muted); font-size: 15px;
+      line-height: 1.7; margin-bottom: 24px;
+    }
+
+    /* Features */
+    .features-list { list-style: none; margin-bottom: 32px; }
+    .features-list li {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 14px; color: #ccc;
+      padding: 7px 0;
+      border-bottom: 1px solid rgba(255,255,255,.05);
+    }
+    .features-list li:last-child { border-bottom: none; }
+    .features-list li .check {
+      width: 20px; height: 20px;
+      background: rgba(56,161,105,.2);
+      border: 1px solid rgba(56,161,105,.4);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; color: var(--green);
+      flex-shrink: 0;
+    }
+
+    /* Price */
+    .price-row {
+      display: flex; align-items: center; gap: 14px;
+      margin-bottom: 22px;
+    }
+    .price-original {
+      font-size: 20px; color: var(--muted);
+      text-decoration: line-through;
+    }
+    .price-current {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 52px;
+      line-height: 1;
+      background: linear-gradient(135deg, var(--gold), var(--gold-soft));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .price-badge {
+      background: rgba(229,62,62,.15);
+      border: 1px solid rgba(229,62,62,.35);
+      color: #fc8181;
+      font-size: 12px; font-weight: 700;
+      padding: 4px 10px; border-radius: 6px;
+    }
+
+    /* Buy Button */
+    .btn-buy {
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      background: linear-gradient(135deg, #e53e3e, #c53030);
+      color: #fff;
+      border: none; border-radius: 12px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 17px; font-weight: 700;
+      padding: 18px 32px;
+      cursor: pointer; width: 100%;
+      letter-spacing: .5px;
+      box-shadow: 0 8px 30px rgba(229,62,62,.35);
+      transition: transform .15s, box-shadow .15s;
+      position: relative; overflow: hidden;
+    }
+    .btn-buy::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,.1), transparent);
+    }
+    .btn-buy:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(229,62,62,.5); }
+    .btn-buy:active { transform: translateY(0); }
+
+    .secure-note {
+      display: flex; align-items: center; justify-content: center;
+      gap: 6px; margin-top: 12px;
+      font-size: 12px; color: var(--muted);
+    }
+    .secure-note span { font-size: 14px; }
+
+    /* ─── PAYMENT ICONS SECTION ─── */
+    .payment-section {
+      border-top: 1px solid var(--border);
+      padding: 50px 20px;
+      text-align: center;
+    }
+    .payment-section h3 {
+      font-size: 13px; font-weight: 600; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--muted); margin-bottom: 24px;
+    }
+    .payment-icons {
+      display: flex; align-items: center; justify-content: center;
+      gap: 20px; flex-wrap: wrap;
+    }
+    .pay-chip {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 20px;
+      font-size: 13px; font-weight: 600;
+      color: #ccc;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .pay-chip .icon { font-size: 18px; }
+
+    /* ─── FOOTER ─── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 36px 40px;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 16px;
+    }
+    .footer-brand {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 22px; letter-spacing: 3px;
+      background: linear-gradient(135deg, var(--gold), var(--gold-soft));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .footer-links { display: flex; gap: 20px; }
+    .footer-links a {
+      font-size: 13px; color: var(--muted);
+      text-decoration: none; transition: color .2s;
+    }
+    .footer-links a:hover { color: var(--txt); }
+    .footer-copy { font-size: 12px; color: var(--muted); width: 100%; text-align: center; }
+
+    /* ─── MODAL (Payment) ─── */
+    .modal-overlay {
+      display: none;
+      position: fixed; inset: 0; z-index: 9999;
+      background: rgba(0,0,0,.85);
+      backdrop-filter: blur(8px);
+      align-items: center; justify-content: center;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 48px 40px;
+      max-width: 460px; width: 94%;
+      text-align: center;
+      box-shadow: 0 40px 100px rgba(0,0,0,.7);
+      animation: modalIn .3s ease;
+    }
+    @keyframes modalIn {
+      from { opacity: 0; transform: scale(.9) translateY(20px); }
+      to   { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .modal-icon { font-size: 60px; margin-bottom: 18px; }
+    .modal h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 28px; margin-bottom: 10px;
+    }
+    .modal p { color: var(--muted); font-size: 15px; line-height: 1.6; margin-bottom: 28px; }
+    .modal-actions { display: flex; gap: 12px; }
+    .btn-modal {
+      flex: 1; padding: 14px;
+      border-radius: 10px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px; font-weight: 600;
+      cursor: pointer; border: none;
+      transition: opacity .2s;
+    }
+    .btn-modal:hover { opacity: .85; }
+    .btn-primary { background: var(--red); color: #fff; }
+    .btn-secondary {
+      background: var(--surface);
+      color: var(--muted);
+      border: 1px solid var(--border) !important;
+    }
+
+    /* ─── SUCCESS PAGE ─── */
+    .success-page {
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      padding: 40px 20px;
+    }
+    .success-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 60px 50px;
+      max-width: 500px; width: 100%;
+      text-align: center;
+      box-shadow: 0 40px 100px rgba(0,0,0,.5);
+      animation: modalIn .4s ease;
+    }
+    .success-anim {
+      width: 90px; height: 90px;
+      background: rgba(56,161,105,.15);
+      border: 2px solid rgba(56,161,105,.4);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 40px;
+      margin: 0 auto 24px;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(56,161,105,.3); }
+      50% { box-shadow: 0 0 0 20px rgba(56,161,105,0); }
+    }
+    .success-card h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 32px; margin-bottom: 12px;
+    }
+    .success-card p { color: var(--muted); font-size: 15px; line-height: 1.7; margin-bottom: 32px; }
+    .btn-download {
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      background: linear-gradient(135deg, var(--green), #2f855a);
+      color: #fff; border: none; border-radius: 12px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 16px; font-weight: 700;
+      padding: 16px 32px;
+      cursor: pointer; width: 100%;
+      box-shadow: 0 8px 30px rgba(56,161,105,.3);
+      text-decoration: none;
+      transition: transform .15s, box-shadow .15s;
+      margin-bottom: 14px;
+    }
+    .btn-download:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(56,161,105,.45); }
+    .btn-back-home {
+      background: none; border: 1px solid var(--border);
+      color: var(--muted); border-radius: 10px;
+      padding: 12px 24px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px; cursor: pointer;
+      width: 100%; transition: border-color .2s, color .2s;
+    }
+    .btn-back-home:hover { border-color: var(--gold); color: var(--gold); }
+
+    /* ─── ADMIN PAGE ─── */
+    .admin-page {
+      max-width: 900px; margin: 0 auto;
+      padding: 40px 20px 80px;
+    }
+    .admin-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 36px;
+    }
+    .admin-header h1 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 40px; letter-spacing: 2px;
+    }
+    .admin-header h1 span { color: var(--gold); }
+    .btn-add {
+      background: var(--gold); color: #000;
+      border: none; border-radius: 10px;
+      padding: 12px 22px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px; font-weight: 700;
+      cursor: pointer;
+      display: flex; align-items: center; gap: 8px;
+      transition: opacity .2s;
+    }
+    .btn-add:hover { opacity: .85; }
+
+    /* Login */
+    .admin-login {
+      max-width: 400px; margin: 80px auto;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 48px 36px; text-align: center;
+    }
+    .admin-login h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 26px; margin-bottom: 8px;
+    }
+    .admin-login p { color: var(--muted); font-size: 14px; margin-bottom: 28px; }
+    .form-group { text-align: left; margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 12px; font-weight: 600; letter-spacing: 1px; color: var(--muted); margin-bottom: 7px; text-transform: uppercase; }
+    .form-group input, .form-group textarea, .form-group select {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--txt);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      padding: 12px 14px;
+      outline: none;
+      transition: border-color .2s;
+    }
+    .form-group input:focus, .form-group textarea:focus {
+      border-color: var(--gold);
+    }
+    .form-group textarea { resize: vertical; min-height: 90px; }
+    .btn-login {
+      width: 100%;
+      background: var(--gold); color: #000;
+      border: none; border-radius: 10px;
+      padding: 14px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px; font-weight: 700;
+      cursor: pointer; margin-top: 8px;
+      transition: opacity .2s;
+    }
+    .btn-login:hover { opacity: .85; }
+    .login-error { color: #fc8181; font-size: 13px; margin-top: 8px; display: none; }
+
+    /* Products Table */
+    .products-grid { display: flex; flex-direction: column; gap: 14px; }
+    .admin-product-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px 24px;
+      display: flex; align-items: center; gap: 20px;
+      transition: border-color .2s;
+    }
+    .admin-product-card:hover { border-color: var(--border); }
+    .admin-product-thumb {
+      width: 64px; height: 64px;
+      border-radius: 10px;
+      object-fit: cover;
+      background: var(--surface);
+      flex-shrink: 0;
+    }
+    .admin-product-thumb.placeholder {
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px;
+    }
+    .admin-product-info { flex: 1; }
+    .admin-product-info h3 { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+    .admin-product-info p { font-size: 13px; color: var(--muted); }
+    .admin-product-price {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 28px; color: var(--gold);
+      margin-right: 8px;
+    }
+    .admin-actions { display: flex; gap: 8px; }
+    .btn-edit, .btn-del {
+      border: none; border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 13px; font-weight: 600;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      transition: opacity .2s;
+    }
+    .btn-edit { background: rgba(240,180,41,.15); color: var(--gold); border: 1px solid rgba(240,180,41,.3) !important; }
+    .btn-del  { background: rgba(229,62,62,.12); color: #fc8181; border: 1px solid rgba(229,62,62,.25) !important; }
+    .btn-edit:hover, .btn-del:hover { opacity: .75; }
+
+    /* Form Modal */
+    .form-modal {
+      display: none;
+      position: fixed; inset: 0; z-index: 9999;
+      background: rgba(0,0,0,.85);
+      backdrop-filter: blur(8px);
+      align-items: center; justify-content: center;
+      padding: 20px;
+    }
+    .form-modal.show { display: flex; }
+    .form-modal-box {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 40px 36px;
+      width: 100%; max-width: 540px;
+      max-height: 90vh; overflow-y: auto;
+      animation: modalIn .3s ease;
+    }
+    .form-modal-box h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 24px; margin-bottom: 24px;
+    }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .form-actions { display: flex; gap: 12px; margin-top: 8px; }
+    .btn-save {
+      flex: 1; background: var(--gold); color: #000;
+      border: none; border-radius: 10px;
+      padding: 13px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px; font-weight: 700;
+      cursor: pointer; transition: opacity .2s;
+    }
+    .btn-save:hover { opacity: .85; }
+    .btn-cancel {
+      background: var(--surface); color: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: 10px; padding: 13px 24px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px; cursor: pointer;
+      transition: border-color .2s;
+    }
+    .btn-cancel:hover { border-color: var(--muted); }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center; padding: 60px 20px;
+      border: 2px dashed var(--border); border-radius: 16px;
+    }
+    .empty-state .emoji { font-size: 48px; margin-bottom: 14px; }
+    .empty-state h3 { font-size: 18px; margin-bottom: 8px; }
+    .empty-state p { color: var(--muted); font-size: 14px; }
+
+    /* Toast */
+    .toast {
+      position: fixed; bottom: 28px; right: 28px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 22px;
+      font-size: 14px; font-weight: 500;
+      z-index: 99999;
+      transform: translateY(80px); opacity: 0;
+      transition: transform .3s, opacity .3s;
+      box-shadow: 0 10px 40px rgba(0,0,0,.5);
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast.success { border-color: rgba(56,161,105,.4); color: #68d391; }
+    .toast.error   { border-color: rgba(229,62,62,.4); color: #fc8181; }
+
+    /* Products listing (all products) */
+    .all-products {
+      max-width: 1100px; margin: 0 auto;
+      padding: 60px 20px;
+    }
+    .all-products h2 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 48px; letter-spacing: 2px;
+      margin-bottom: 36px;
+    }
+    .products-grid-display {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+    }
+    .mini-product-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px; overflow: hidden;
+      cursor: pointer;
+      transition: transform .2s, border-color .2s;
+    }
+    .mini-product-card:hover { transform: translateY(-4px); border-color: rgba(240,180,41,.3); }
+    .mini-product-img {
+      height: 180px;
+      background: linear-gradient(135deg, #1a1a2e, #0f3460);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 60px;
+    }
+    .mini-product-img img { width: 100%; height: 100%; object-fit: cover; }
+    .mini-product-body { padding: 18px; }
+    .mini-product-body h3 { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+    .mini-product-body p { color: var(--muted); font-size: 13px; margin-bottom: 12px; }
+    .mini-price { display: flex; align-items: center; gap: 10px; }
+    .mini-price-curr {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 26px; color: var(--gold);
+    }
+    .mini-price-orig { font-size: 13px; color: var(--muted); text-decoration: line-through; }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      nav { padding: 14px 20px; }
+      .product-card { grid-template-columns: 1fr; }
+      .product-img-wrap { min-height: 260px; }
+      .product-info { padding: 28px 24px; }
+      footer { flex-direction: column; text-align: center; }
+      .form-row { grid-template-columns: 1fr; }
+      .admin-product-card { flex-direction: column; align-items: flex-start; }
+    }
+
+    /* Animated gradient BG for hero */
+    .hero-glow {
+      position: absolute;
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(240,180,41,.06) 0%, transparent 70%);
+      top: -100px; left: 50%; transform: translateX(-50%);
+      pointer-events: none;
+    }
+
+    /* Razorpay loading spinner */
+    .spinner {
+      width: 20px; height: 20px;
+      border: 2px solid rgba(255,255,255,.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Features tag row */
+    .feature-tags {
+      display: flex; flex-wrap: wrap; gap: 8px;
+      margin-bottom: 22px;
+    }
+    .feature-tag {
+      background: rgba(240,180,41,.08);
+      border: 1px solid rgba(240,180,41,.2);
+      color: var(--gold-soft);
+      font-size: 12px; font-weight: 500;
+      padding: 4px 12px; border-radius: 50px;
+    }
+
+    /* Divider */
+    .divider {
+      height: 1px;
+      background: linear-gradient(to right, transparent, var(--border), transparent);
+      margin: 0 40px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════ TOAST ═══════════════ -->
+<div class="toast" id="toast"></div>
+
+<!-- ═══════════════ PAYMENT CONFIRM MODAL ═══════════════ -->
+<div class="modal-overlay" id="payModal">
+  <div class="modal">
+    <div class="modal-icon">💳</div>
+    <h2>Complete Your Purchase</h2>
+    <p id="payModalDesc">You're about to buy <strong id="payProductName"></strong> for <strong id="payProductPrice"></strong>. You'll be redirected to Razorpay's secure checkout.</p>
+    <div class="modal-actions">
+      <button class="btn-modal btn-secondary" onclick="closePayModal()">Cancel</button>
+      <button class="btn-modal btn-primary" id="payNowBtn" onclick="initiateRazorpay()">
+        Pay Now ₹<span id="payBtnPrice"></span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ PRODUCT FORM MODAL (Admin) ═══════════════ -->
+<div class="form-modal" id="productFormModal">
+  <div class="form-modal-box">
+    <h2 id="formModalTitle">Add New Product</h2>
+    <input type="hidden" id="editProductId"/>
+    <div class="form-group">
+      <label>Product Name *</label>
+      <input type="text" id="fieldName" placeholder="e.g. All in One Creator Pack"/>
+    </div>
+    <div class="form-group">
+      <label>Description *</label>
+      <textarea id="fieldDesc" placeholder="Short description of the product..."></textarea>
+    </div>
+    <div class="form-group">
+      <label>Features (comma separated)</label>
+      <input type="text" id="fieldFeatures" placeholder="LUTs, Transitions, PSD Templates, Sound FX"/>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Sale Price (₹) *</label>
+        <input type="number" id="fieldPrice" placeholder="99"/>
+      </div>
+      <div class="form-group">
+        <label>Original Price (₹)</label>
+        <input type="number" id="fieldOrigPrice" placeholder="1999"/>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Product Image URL</label>
+      <input type="text" id="fieldImage" placeholder="https://... or product.jpg"/>
+    </div>
+    <div class="form-group">
+      <label>Download File URL *</label>
+      <input type="text" id="fieldDownload" placeholder="https://... or pack.zip"/>
+    </div>
+    <div class="form-group">
+      <label>Category</label>
+      <input type="text" id="fieldCategory" placeholder="Creator Pack, Templates, etc."/>
+    </div>
+    <div class="form-actions">
+      <button class="btn-cancel" onclick="closeFormModal()">Cancel</button>
+      <button class="btn-save" onclick="saveProduct()">Save Product</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ PAGE: HOME ═══════════════ -->
+<div class="page active" id="page-home">
+  <!-- NAV -->
+  <nav>
+    <div class="nav-logo">VK Digital</div>
+    <div class="nav-links">
+      <a href="#" onclick="showPage('home')">Home</a>
+      <a href="#" onclick="showAllProducts()">All Products</a>
+      <a href="#" onclick="showPage('admin')" class="nav-admin-btn">⚙ Admin</a>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-glow"></div>
+    <div class="hero-badge">🔥 Limited Time Offer</div>
+    <h1>Premium Digital<br/><span>Creator Packs</span></h1>
+    <p>Professional-grade assets for creators, editors & designers. Instant download after payment.</p>
+  </section>
+
+  <!-- PRODUCT SECTION -->
+  <section class="product-section">
+    <div class="product-card" id="homeProductCard">
+      <!-- Dynamically filled -->
+    </div>
+  </section>
+
+  <!-- PAYMENT ICONS -->
+  <section class="payment-section">
+    <h3>Secure Payment Powered By</h3>
+    <div class="payment-icons">
+      <div class="pay-chip"><span class="icon">🏦</span> Razorpay</div>
+      <div class="pay-chip"><span class="icon">💳</span> UPI</div>
+      <div class="pay-chip"><span class="icon">🌐</span> Net Banking</div>
+      <div class="pay-chip"><span class="icon">📱</span> Paytm</div>
+      <div class="pay-chip"><span class="icon">🔐</span> 256-bit SSL</div>
+      <div class="pay-chip"><span class="icon">⚡</span> Instant Delivery</div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-brand">VK Digital</div>
+    <div class="footer-links">
+      <a href="#">Privacy Policy</a>
+      <a href="#">Refund Policy</a>
+      <a href="#">Contact</a>
+    </div>
+    <div class="footer-copy">© 2025 VK Digital. All rights reserved. Digital products are non-refundable after download.</div>
+  </footer>
+</div>
+
+<!-- ═══════════════ PAGE: ALL PRODUCTS ═══════════════ -->
+<div class="page" id="page-all-products">
+  <nav>
+    <div class="nav-logo">VK Digital</div>
+    <div class="nav-links">
+      <a href="#" onclick="showPage('home')">Home</a>
+      <a href="#" onclick="showAllProducts()">All Products</a>
+      <a href="#" onclick="showPage('admin')" class="nav-admin-btn">⚙ Admin</a>
+    </div>
+  </nav>
+  <div class="all-products">
+    <h2>All <span style="color:var(--gold)">Products</span></h2>
+    <div class="products-grid-display" id="allProductsGrid"></div>
+  </div>
+  <footer>
+    <div class="footer-brand">VK Digital</div>
+    <div class="footer-links">
+      <a href="#">Privacy Policy</a>
+      <a href="#">Refund Policy</a>
+      <a href="#">Contact</a>
+    </div>
+    <div class="footer-copy">© 2025 VK Digital. All rights reserved.</div>
+  </footer>
+</div>
+
+<!-- ═══════════════ PAGE: SUCCESS ═══════════════ -->
+<div class="page" id="page-success">
+  <nav>
+    <div class="nav-logo">VK Digital</div>
+    <div class="nav-links">
+      <a href="#" onclick="showPage('home')">Home</a>
+    </div>
+  </nav>
+  <div class="success-page">
+    <div class="success-card">
+      <div class="success-anim">✅</div>
+      <h2>Payment Successful!</h2>
+      <p>Thank you for your purchase! Your digital product is ready. Click the button below to download your files instantly.</p>
+      <a id="downloadBtn" href="#" download class="btn-download">
+        ⬇ Download Your Pack
+      </a>
+      <button class="btn-back-home" onclick="showPage('home')">← Back to Store</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ PAGE: ADMIN ═══════════════ -->
+<div class="page" id="page-admin">
+  <nav>
+    <div class="nav-logo">VK Digital</div>
+    <div class="nav-links">
+      <a href="#" onclick="showPage('home')">← Back to Store</a>
+    </div>
+  </nav>
+
+  <!-- ADMIN LOGIN -->
+  <div id="adminLogin">
+    <div class="admin-login">
+      <div style="font-size:42px;margin-bottom:16px">🔐</div>
+      <h2>Admin Panel</h2>
+      <p>Enter your credentials to manage products</p>
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" id="loginUser" placeholder="admin"/>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="loginPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')adminLogin()"/>
+      </div>
+      <button class="btn-login" onclick="adminLogin()">Login</button>
+      <div class="login-error" id="loginError">❌ Invalid credentials. Try admin / vkdigital123</div>
+    </div>
+  </div>
+
+  <!-- ADMIN DASHBOARD -->
+  <div id="adminDashboard" style="display:none">
+    <div class="admin-page">
+      <div class="admin-header">
+        <h1>Admin <span>Panel</span></h1>
+        <div style="display:flex;gap:10px">
+          <button class="btn-add" onclick="openFormModal()">+ Add Product</button>
+          <button class="btn-cancel" onclick="adminLogout()" style="padding:10px 18px;font-size:13px">Logout</button>
+        </div>
+      </div>
+      <div id="adminProductsList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ RAZORPAY SDK (Load on demand) ═══════════════ -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<script>
+// ════════════════════════════════════════
+//  ❶  DEFAULT PRODUCTS DATA
+// ════════════════════════════════════════
+const DEFAULT_PRODUCTS = [
+  {
+    id: 'prod_001',
+    name: 'All in One Creator Pack',
+    description: 'A massive bundle of professional-grade creative assets handpicked for content creators, video editors, and social media designers.',
+    features: ['50+ Premium LUTs', '30 Smooth Transitions', '20 PSD Templates', '100+ Sound FX', 'After Effects Presets', 'Lifetime Access'],
+    category: 'Creator Pack',
+    price: 99,
+    originalPrice: 1999,
+    image: '',
+    download_link: 'pack.zip'
+  },
+  {
+    id: 'prod_002',
+    name: 'Social Media Template Bundle',
+    description: 'Editable templates for Instagram, YouTube & TikTok. Fully layered PSD files.',
+    features: ['200+ Social Templates', 'Fully Editable PSD', 'Reels & Stories Sizes', 'Brand Kit Included'],
+    category: 'Templates',
+    price: 149,
+    originalPrice: 2499,
+    image: '',
+    download_link: 'social_bundle.zip'
+  }
+];
+
+// ════════════════════════════════════════
+//  ❷  PRODUCT STORE (localStorage)
+// ════════════════════════════════════════
+function getProducts() {
+  const stored = localStorage.getItem('vkdigital_products');
+  if (stored) return JSON.parse(stored);
+  localStorage.setItem('vkdigital_products', JSON.stringify(DEFAULT_PRODUCTS));
+  return DEFAULT_PRODUCTS;
+}
+
+function saveProducts(products) {
+  localStorage.setItem('vkdigital_products', JSON.stringify(products));
+}
+
+// ════════════════════════════════════════
+//  ❸  PAGE ROUTING
+// ════════════════════════════════════════
+let currentProduct = null;
+
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(`page-${name}`).classList.add('active');
+  window.scrollTo(0, 0);
+  if (name === 'home') renderHomeProduct();
+  if (name === 'admin') renderAdminState();
+}
+
+function showAllProducts() {
+  showPage('all-products');
+  renderAllProducts();
+}
+
+// ════════════════════════════════════════
+//  ❹  HOME: RENDER FEATURED PRODUCT
+// ════════════════════════════════════════
+function renderHomeProduct() {
+  const products = getProducts();
+  if (!products.length) {
+    document.getElementById('homeProductCard').innerHTML = `
+      <div style="padding:60px;text-align:center;grid-column:1/-1;color:var(--muted)">
+        <div style="font-size:48px;margin-bottom:14px">📦</div>
+        <p>No products yet. Add one from the admin panel!</p>
+      </div>`;
+    return;
+  }
+  const p = products[0];
+  currentProduct = p;
+  const discount = Math.round(((p.originalPrice - p.price) / p.originalPrice) * 100);
+
+  const imgHtml = p.image
+    ? `<img src="${p.image}" alt="${p.name}" onerror="this.parentElement.innerHTML='<div class=\\'product-img-placeholder\\'><div class=\\'icon\\'>📦</div><span>${p.name}</span></div>'">`
+    : `<div class="product-img-placeholder"><div class="icon">📦</div><span>${p.name}</span></div>`;
+
+  const featuresList = (p.features || []).map(f =>
+    `<li><span class="check">✓</span>${f}</li>`
+  ).join('');
+
+  const tagsList = (p.features || []).slice(0, 4).map(f =>
+    `<span class="feature-tag">${f}</span>`
+  ).join('');
+
+  document.getElementById('homeProductCard').innerHTML = `
+    <div class="product-img-wrap">
+      <div class="img-tag">${p.category || 'Digital Pack'}</div>
+      ${imgHtml}
+    </div>
+    <div class="product-info">
+      <div class="product-category">⚡ ${p.category || 'Digital Product'}</div>
+      <div class="product-name">${p.name}</div>
+      <p class="product-desc">${p.description}</p>
+      <div class="feature-tags">${tagsList}</div>
+      <ul class="features-list">${featuresList}</ul>
+      <div class="price-row">
+        <span class="price-original">₹${p.originalPrice || 1999}</span>
+        <span class="price-current">₹${p.price}</span>
+        <span class="price-badge">${discount}% OFF</span>
+      </div>
+      <button class="btn-buy" onclick="openPayModal('${p.id}')">
+        🛒 Buy Now – Only ₹${p.price}
+      </button>
+      <div class="secure-note">
+        <span>🔐</span> 100% Secure • Instant Download • No Subscription
+      </div>
+    </div>`;
+}
+
+// ════════════════════════════════════════
+//  ❺  ALL PRODUCTS GRID
+// ════════════════════════════════════════
+function renderAllProducts() {
+  const products = getProducts();
+  const grid = document.getElementById('allProductsGrid');
+  if (!products.length) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
+      <div class="emoji">📭</div>
+      <h3>No products yet</h3>
+      <p>Add products via the admin panel.</p>
+    </div>`;
+    return;
+  }
+  grid.innerHTML = products.map(p => {
+    const imgHtml = p.image
+      ? `<img src="${p.image}" style="width:100%;height:100%;object-fit:cover" alt="${p.name}">`
+      : `<span style="font-size:60px">📦</span>`;
+    return `
+      <div class="mini-product-card" onclick="openPayModal('${p.id}')">
+        <div class="mini-product-img">${imgHtml}</div>
+        <div class="mini-product-body">
+          <h3>${p.name}</h3>
+          <p>${p.description.substring(0, 80)}...</p>
+          <div class="mini-price">
+            <span class="mini-price-curr">₹${p.price}</span>
+            <span class="mini-price-orig">₹${p.originalPrice || 1999}</span>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ════════════════════════════════════════
+//  ❻  PAYMENT MODAL
+// ════════════════════════════════════════
+let selectedProduct = null;
+
+function openPayModal(productId) {
+  const products = getProducts();
+  selectedProduct = products.find(p => p.id === productId) || products[0];
+  document.getElementById('payProductName').textContent = selectedProduct.name;
+  document.getElementById('payProductPrice').textContent = `₹${selectedProduct.price}`;
+  document.getElementById('payBtnPrice').textContent = selectedProduct.price;
+  document.getElementById('payModal').classList.add('show');
+}
+
+function closePayModal() {
+  document.getElementById('payModal').classList.remove('show');
+}
+
+// ════════════════════════════════════════
+//  ❼  RAZORPAY INTEGRATION
+// ════════════════════════════════════════
+function initiateRazorpay() {
+  const btn = document.getElementById('payNowBtn');
+  btn.innerHTML = `<div class="spinner"></div> Processing...`;
+  btn.disabled = true;
+
+  // ⚠️ Replace with your actual Razorpay Key ID
+  const RAZORPAY_KEY = 'rzp_test_XXXXXXXXXXXXXXXX';
+
+  const options = {
+    key: RAZORPAY_KEY,
+    amount: selectedProduct.price * 100, // in paise
+    currency: 'INR',
+    name: 'VK Digital',
+    description: selectedProduct.name,
+    image: selectedProduct.image || '',
+    handler: function(response) {
+      // Payment success
+      closePayModal();
+      onPaymentSuccess(response);
+    },
+    prefill: {
+      name: '',
+      email: '',
+      contact: ''
+    },
+    notes: {
+      product_id: selectedProduct.id
+    },
+    theme: {
+      color: '#f0b429'
+    },
+    modal: {
+      ondismiss: function() {
+        btn.innerHTML = `Pay Now ₹${selectedProduct.price}`;
+        btn.disabled = false;
+        showToast('Payment cancelled.', 'error');
+      }
+    }
+  };
+
+  try {
+    const rzp = new Razorpay(options);
+    rzp.on('payment.failed', function(response) {
+      showToast('Payment failed. Please try again.', 'error');
+      btn.innerHTML = `Pay Now ₹${selectedProduct.price}`;
+      btn.disabled = false;
+    });
+    rzp.open();
+  } catch(e) {
+    // If Razorpay key not configured, simulate success for demo
+    setTimeout(() => {
+      closePayModal();
+      onPaymentSuccess({ razorpay_payment_id: 'demo_' + Date.now() });
+    }, 1500);
+  }
+}
+
+function onPaymentSuccess(response) {
+  // Set download link
+  const downloadBtn = document.getElementById('downloadBtn');
+  downloadBtn.href = selectedProduct.download_link || '#';
+  downloadBtn.setAttribute('download', selectedProduct.name.replace(/\s+/g,'_') + '.zip');
+  showPage('success');
+  showToast('🎉 Payment successful!', 'success');
+  console.log('Payment ID:', response.razorpay_payment_id);
+}
+
+// ════════════════════════════════════════
+//  ❽  ADMIN PANEL
+// ════════════════════════════════════════
+const ADMIN_CREDS = { user: 'admin', pass: '@1226560Vi' };
+let isAdminLoggedIn = false;
+
+function adminLogin() {
+  const u = document.getElementById('loginUser').value.trim();
+  const p = document.getElementById('loginPass').value;
+  if (u === ADMIN_CREDS.user && p === ADMIN_CREDS.pass) {
+    isAdminLoggedIn = true;
+    document.getElementById('adminLogin').style.display = 'none';
+    document.getElementById('adminDashboard').style.display = 'block';
+    renderAdminProducts();
+    showToast('Welcome back, Admin!', 'success');
+  } else {
+    document.getElementById('loginError').style.display = 'block';
+  }
+}
+
+function adminLogout() {
+  isAdminLoggedIn = false;
+  document.getElementById('adminLogin').style.display = 'block';
+  document.getElementById('adminDashboard').style.display = 'none';
+  document.getElementById('loginUser').value = '';
+  document.getElementById('loginPass').value = '';
+  document.getElementById('loginError').style.display = 'none';
+  showPage('home');
+}
+
+function renderAdminState() {
+  if (isAdminLoggedIn) {
+    document.getElementById('adminLogin').style.display = 'none';
+    document.getElementById('adminDashboard').style.display = 'block';
+    renderAdminProducts();
+  } else {
+    document.getElementById('adminLogin').style.display = 'block';
+    document.getElementById('adminDashboard').style.display = 'none';
+  }
+}
+
+function renderAdminProducts() {
+  const products = getProducts();
+  const container = document.getElementById('adminProductsList');
+  if (!products.length) {
+    container.innerHTML = `<div class="empty-state">
+      <div class="emoji">📦</div>
+      <h3>No products yet</h3>
+      <p>Click "Add Product" to create your first listing.</p>
+    </div>`;
+    return;
+  }
+  container.innerHTML = `<div class="products-grid">
+    ${products.map(p => `
+      <div class="admin-product-card">
+        ${p.image
+          ? `<img src="${p.image}" class="admin-product-thumb" alt="${p.name}" onerror="this.outerHTML='<div class=\\'admin-product-thumb placeholder\\'>📦</div>'">`
+          : `<div class="admin-product-thumb placeholder">📦</div>`}
+        <div class="admin-product-info">
+          <h3>${p.name}</h3>
+          <p>${p.description.substring(0, 90)}${p.description.length > 90 ? '...' : ''}</p>
+        </div>
+        <div class="admin-product-price">₹${p.price}</div>
+        <div class="admin-actions">
+          <button class="btn-edit" onclick="openFormModal('${p.id}')">✏ Edit</button>
+          <button class="btn-del" onclick="deleteProduct('${p.id}')">🗑 Delete</button>
+        </div>
+      </div>`).join('')}
+  </div>`;
+}
+
+// ════════════════════════════════════════
+//  ❾  PRODUCT FORM MODAL
+// ════════════════════════════════════════
+function openFormModal(editId = null) {
+  clearFormModal();
+  document.getElementById('editProductId').value = editId || '';
+
+  if (editId) {
+    const products = getProducts();
+    const p = products.find(x => x.id === editId);
+    if (p) {
+      document.getElementById('formModalTitle').textContent = 'Edit Product';
+      document.getElementById('fieldName').value = p.name;
+      document.getElementById('fieldDesc').value = p.description;
+      document.getElementById('fieldFeatures').value = (p.features || []).join(', ');
+      document.getElementById('fieldPrice').value = p.price;
+      document.getElementById('fieldOrigPrice').value = p.originalPrice || '';
+      document.getElementById('fieldImage').value = p.image || '';
+      document.getElementById('fieldDownload').value = p.download_link || '';
+      document.getElementById('fieldCategory').value = p.category || '';
+    }
+  } else {
+    document.getElementById('formModalTitle').textContent = 'Add New Product';
+  }
+
+  document.getElementById('productFormModal').classList.add('show');
+}
+
+function clearFormModal() {
+  ['fieldName','fieldDesc','fieldFeatures','fieldPrice','fieldOrigPrice',
+   'fieldImage','fieldDownload','fieldCategory'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('editProductId').value = '';
+  document.getElementById('formModalTitle').textContent = 'Add New Product';
+}
+
+function closeFormModal() {
+  document.getElementById('productFormModal').classList.remove('show');
+}
+
+function saveProduct() {
+  const name = document.getElementById('fieldName').value.trim();
+  const desc = document.getElementById('fieldDesc').value.trim();
+  const price = parseFloat(document.getElementById('fieldPrice').value);
+  const download = document.getElementById('fieldDownload').value.trim();
+
+  if (!name || !desc || !price || !download) {
+    showToast('Please fill all required fields.', 'error'); return;
+  }
+
+  const products = getProducts();
+  const editId = document.getElementById('editProductId').value;
+
+  const productData = {
+    id: editId || 'prod_' + Date.now(),
+    name,
+    description: desc,
+    features: document.getElementById('fieldFeatures').value.split(',').map(s => s.trim()).filter(Boolean),
+    price,
+    originalPrice: parseFloat(document.getElementById('fieldOrigPrice').value) || Math.round(price * 20),
+    image: document.getElementById('fieldImage').value.trim(),
+    download_link: download,
+    category: document.getElementById('fieldCategory').value.trim() || 'Digital Pack'
+  };
+
+  if (editId) {
+    const idx = products.findIndex(p => p.id === editId);
+    if (idx !== -1) products[idx] = productData;
+    showToast('Product updated!', 'success');
+  } else {
+    products.push(productData);
+    showToast('Product added!', 'success');
+  }
+
+  saveProducts(products);
+  closeFormModal();
+  renderAdminProducts();
+}
+
+function deleteProduct(id) {
+  if (!confirm('Are you sure you want to delete this product?')) return;
+  const products = getProducts().filter(p => p.id !== id);
+  saveProducts(products);
+  renderAdminProducts();
+  showToast('Product deleted.', 'error');
+}
+
+// ════════════════════════════════════════
+//  ❿  UTILITIES
+// ════════════════════════════════════════
+function showToast(msg, type = 'success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast ${type} show`;
+  setTimeout(() => { t.className = 'toast'; }, 3500);
+}
+
+// Close modals on overlay click
+document.getElementById('payModal').addEventListener('click', function(e) {
+  if (e.target === this) closePayModal();
+});
+document.getElementById('productFormModal').addEventListener('click', function(e) {
+  if (e.target === this) closeFormModal();
+});
+
+// ════════════════════════════════════════
+//  ⓫  INIT
+// ════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', () => {
+  renderHomeProduct();
+});
+</script>
+</body>
+</html>
