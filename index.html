@@ -651,30 +651,27 @@ const { createClient } = supabase;
 const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ══════════════════════════════════════
-//  DEFAULT PRODUCTS (localStorage)
+//  PRODUCTS (Supabase DB)
 // ══════════════════════════════════════
-const DEFAULT_PRODUCTS = [
-  {
-    id: 'prod_001',
-    name: 'All in One Creator Pack',
-    description: 'A massive bundle of professional-grade creative assets handpicked for content creators, video editors, and social media designers.',
-    features: ['50+ Premium LUTs','30 Smooth Transitions','20 PSD Templates','100+ Sound FX','After Effects Presets','Lifetime Access'],
-    category: 'Creator Pack',
-    price: 99,
-    originalPrice: 1999,
-    image: '',
-    download_link: 'pack.zip'
+let _cachedProducts = [];
+
+async function getProductsFromDB() {
+  try {
+    const { data, error } = await db.from('products').select('*').order('created_at', { ascending: true });
+    if (error) throw error;
+    _cachedProducts = (data || []).map(p => ({
+      ...p,
+      features: Array.isArray(p.features) ? p.features : (p.features ? String(p.features).split(',').map(s=>s.trim()) : [])
+    }));
+    return _cachedProducts;
+  } catch(e) {
+    console.error('Failed to load products:', e);
+    return _cachedProducts;
   }
-];
+}
 
 function getProducts() {
-  const stored = localStorage.getItem('vkdigital_products');
-  if (stored) return JSON.parse(stored);
-  localStorage.setItem('vkdigital_products', JSON.stringify(DEFAULT_PRODUCTS));
-  return DEFAULT_PRODUCTS;
-}
-function saveProducts(products) {
-  localStorage.setItem('vkdigital_products', JSON.stringify(products));
+  return _cachedProducts;
 }
 
 // ══════════════════════════════════════
@@ -698,7 +695,9 @@ function showAllProducts() {
 // ══════════════════════════════════════
 //  HOME PRODUCT
 // ══════════════════════════════════════
-function renderHomeProduct() {
+async function renderHomeProduct() {
+  document.getElementById('homeProductCard').innerHTML = `<div style="padding:60px;text-align:center;grid-column:1/-1;color:var(--muted)"><div style="font-size:48px;margin-bottom:14px">⏳</div><p>Loading...</p></div>`;
+  await getProductsFromDB();
   const products = getProducts();
   if (!products.length) {
     document.getElementById('homeProductCard').innerHTML = `<div style="padding:60px;text-align:center;grid-column:1/-1;color:var(--muted)"><div style="font-size:48px;margin-bottom:14px">📦</div><p>No products yet. Add one from the admin panel!</p></div>`;
@@ -706,7 +705,7 @@ function renderHomeProduct() {
   }
   const p = products[0];
   currentProduct = p;
-  const discount = Math.round(((p.originalPrice - p.price) / p.originalPrice) * 100);
+  const discount = Math.round(((p.original_price - p.price) / p.original_price) * 100);
   const imgHtml = p.image
     ? `<img src="${p.image}" alt="${p.name}" loading="lazy" decoding="async" onerror="this.parentElement.innerHTML='<div class=\\'product-img-placeholder\\'><div class=\\'icon\\'>📦</div><span>${p.name}</span></div>'">`
     : `<div class="product-img-placeholder"><div class="icon">📦</div><span>${p.name}</span></div>`;
@@ -724,7 +723,7 @@ function renderHomeProduct() {
       <div class="feature-tags">${tagsList}</div>
       <ul class="features-list">${featuresList}</ul>
       <div class="price-row">
-        <span class="price-original">₹${p.originalPrice||1999}</span>
+        <span class="price-original">₹${p.original_price||1999}</span>
         <span class="price-current">₹${p.price}</span>
         <span class="price-badge">${discount}% OFF</span>
       </div>
@@ -736,7 +735,8 @@ function renderHomeProduct() {
 // ══════════════════════════════════════
 //  ALL PRODUCTS
 // ══════════════════════════════════════
-function renderAllProducts() {
+async function renderAllProducts() {
+  await getProductsFromDB();
   const products = getProducts();
   const grid = document.getElementById('allProductsGrid');
   if (!products.length) {
@@ -752,7 +752,7 @@ function renderAllProducts() {
         <p>${p.description.substring(0,80)}...</p>
         <div class="mini-price">
           <span class="mini-price-curr">₹${p.price}</span>
-          <span class="mini-price-orig">₹${p.originalPrice||1999}</span>
+          <span class="mini-price-orig">₹${p.original_price||1999}</span>
         </div>
       </div>
     </div>`;
@@ -934,12 +934,12 @@ function switchTab(tab) {
 async function loadStats() {
   try {
     const { data: orders } = await db.from('orders').select('amount');
-    const products = getProducts();
+    const { count } = await db.from('products').select('*', { count: 'exact', head: true });
     const totalOrders = orders ? orders.length : 0;
     const totalRevenue = orders ? orders.reduce((s, o) => s + (o.amount || 0), 0) : 0;
     document.getElementById('statOrders').textContent = totalOrders;
     document.getElementById('statRevenue').textContent = '₹' + totalRevenue;
-    document.getElementById('statProducts').textContent = products.length;
+    document.getElementById('statProducts').textContent = count || 0;
   } catch(e) { console.error(e); }
 }
 
@@ -1044,7 +1044,8 @@ function copyUrl(url) {
 // ══════════════════════════════════════
 //  ADMIN PRODUCTS
 // ══════════════════════════════════════
-function renderAdminProducts() {
+async function renderAdminProducts() {
+  await getProductsFromDB();
   const products = getProducts();
   const container = document.getElementById('adminProductsList');
   if (!products.length) {
@@ -1112,7 +1113,7 @@ function openFormModal(editId = null) {
       document.getElementById('fieldDesc').value = p.description;
       document.getElementById('fieldFeatures').value = (p.features||[]).join(', ');
       document.getElementById('fieldPrice').value = p.price;
-      document.getElementById('fieldOrigPrice').value = p.originalPrice || '';
+      document.getElementById('fieldOrigPrice').value = p.original_price || '';
       document.getElementById('fieldImage').value = p.image || '';
       if (p.image) showImagePreview(p.image);
       document.getElementById('fieldDownload').value = p.download_link || '';
@@ -1132,44 +1133,67 @@ function clearFormModal() {
 
 function closeFormModal() { document.getElementById('productFormModal').classList.remove('show'); }
 
-function saveProduct() {
+async function saveProduct() {
   const name     = document.getElementById('fieldName').value.trim();
   const desc     = document.getElementById('fieldDesc').value.trim();
   const price    = parseFloat(document.getElementById('fieldPrice').value);
   const download = document.getElementById('fieldDownload').value.trim();
   if (!name || !desc || !price || !download) { showToast('Please fill all required fields.', 'error'); return; }
-  const products = getProducts();
-  const editId   = document.getElementById('editProductId').value;
+  const editId = document.getElementById('editProductId').value;
   const productData = {
-    id: editId || 'prod_' + Date.now(),
-    name, description: desc,
+    id: editId || null,
+    name,
+    description: desc,
     features: document.getElementById('fieldFeatures').value.split(',').map(s=>s.trim()).filter(Boolean),
     price,
-    originalPrice: parseFloat(document.getElementById('fieldOrigPrice').value) || Math.round(price * 20),
+    original_price: parseFloat(document.getElementById('fieldOrigPrice').value) || Math.round(price * 20),
     image: document.getElementById('fieldImage').value.trim(),
     download_link: download,
     category: document.getElementById('fieldCategory').value.trim() || 'Digital Pack'
   };
-  if (editId) {
-    const idx = products.findIndex(p => p.id === editId);
-    if (idx !== -1) products[idx] = productData;
-    showToast('Product updated!', 'success');
-  } else {
-    products.push(productData);
-    showToast('Product added!', 'success');
+  try {
+    if (editId) {
+      const { error } = await db.from('products').update({
+        name: productData.name,
+        description: productData.description,
+        features: productData.features,
+        price: productData.price,
+        original_price: productData.original_price,
+        image: productData.image,
+        download_link: productData.download_link,
+        category: productData.category
+      }).eq('id', editId);
+      if (error) throw error;
+      showToast('Product updated!', 'success');
+    } else {
+      const { error } = await db.from('products').insert({
+        name: productData.name,
+        description: productData.description,
+        features: productData.features,
+        price: productData.price,
+        original_price: productData.original_price,
+        image: productData.image,
+        download_link: productData.download_link,
+        category: productData.category
+      });
+      if (error) throw error;
+      showToast('Product added!', 'success');
+    }
+    closeFormModal();
+    await renderAdminProducts();
+    await loadStats();
+  } catch(e) {
+    showToast('Error: ' + e.message, 'error');
   }
-  saveProducts(products);
-  closeFormModal();
-  renderAdminProducts();
-  loadStats();
 }
 
-function deleteProduct(id) {
+async function deleteProduct(id) {
   if (!confirm('Delete this product?')) return;
-  saveProducts(getProducts().filter(p => p.id !== id));
-  renderAdminProducts();
-  loadStats();
+  const { error } = await db.from('products').delete().eq('id', id);
+  if (error) { showToast('Delete failed: ' + error.message, 'error'); return; }
   showToast('Product deleted.', 'error');
+  await renderAdminProducts();
+  await loadStats();
 }
 
 // ══════════════════════════════════════
