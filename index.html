@@ -118,6 +118,7 @@
       width: 80%; max-height: 320px; object-fit: contain;
       position: relative; z-index: 1; border-radius: 12px;
       box-shadow: 0 20px 60px rgba(0,0,0,.5);
+      crossorigin: anonymous;
     }
     .product-img-placeholder {
       display: flex; flex-direction: column; align-items: center; gap: 16px; position: relative; z-index: 1;
@@ -450,7 +451,18 @@
       <div class="form-group"><label>Sale Price (₹) *</label><input type="number" id="fieldPrice" placeholder="99"/></div>
       <div class="form-group"><label>Original Price (₹)</label><input type="number" id="fieldOrigPrice" placeholder="1999"/></div>
     </div>
-    <div class="form-group"><label>Product Image URL</label><input type="text" id="fieldImage" placeholder="https://..."/></div>
+    <div class="form-group">
+      <label>Product Image</label>
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+        <input type="text" id="fieldImage" placeholder="https://... (or upload below)" style="flex:1" oninput="showImagePreview(this.value)"/>
+        <label for="imageUploadInput" style="cursor:pointer;background:rgba(240,180,41,.15);border:1px solid rgba(240,180,41,.35);color:var(--gold);padding:11px 14px;border-radius:10px;font-size:13px;font-weight:600;white-space:nowrap;transition:background .2s" onmouseover="this.style.background='rgba(240,180,41,.25)'" onmouseout="this.style.background='rgba(240,180,41,.15)'">📁 Upload Image</label>
+        <input type="file" id="imageUploadInput" accept="image/*" style="display:none" onchange="uploadProductImage(this)"/>
+      </div>
+      <div id="imagePreviewWrap" style="display:none;margin-top:8px">
+        <img id="imagePreview" src="" alt="Preview" style="max-height:120px;max-width:100%;border-radius:10px;border:1px solid var(--border);object-fit:contain;background:var(--surface);padding:4px"/>
+      </div>
+      <div id="imageUploadStatus" style="font-size:12px;color:var(--muted);margin-top:4px"></div>
+    </div>
     <div class="form-group"><label>Download File URL *</label><input type="text" id="fieldDownload" placeholder="https://... or filename from Files tab"/></div>
     <div class="form-group"><label>Category</label><input type="text" id="fieldCategory" placeholder="Creator Pack, Templates, etc."/></div>
     <div class="form-actions">
@@ -696,7 +708,7 @@ function renderHomeProduct() {
   currentProduct = p;
   const discount = Math.round(((p.originalPrice - p.price) / p.originalPrice) * 100);
   const imgHtml = p.image
-    ? `<img src="${p.image}" alt="${p.name}" onerror="this.parentElement.innerHTML='<div class=\\'product-img-placeholder\\'><div class=\\'icon\\'>📦</div><span>${p.name}</span></div>'">`
+    ? `<img src="${p.image}" alt="${p.name}" loading="lazy" decoding="async" onerror="this.parentElement.innerHTML='<div class=\\'product-img-placeholder\\'><div class=\\'icon\\'>📦</div><span>${p.name}</span></div>'">`
     : `<div class="product-img-placeholder"><div class="icon">📦</div><span>${p.name}</span></div>`;
   const featuresList = (p.features||[]).map(f=>`<li><span class="check">✓</span>${f}</li>`).join('');
   const tagsList = (p.features||[]).slice(0,4).map(f=>`<span class="feature-tag">${f}</span>`).join('');
@@ -780,7 +792,7 @@ function initiateRazorpay() {
   btn.innerHTML = `<div class="spinner"></div> Processing...`;
   btn.disabled = true;
 
-  const RAZORPAY_KEY = 'rzp_test_SO2S4yC9nXWMZL'; // ← Replace with your key
+  const RAZORPAY_KEY = 'rzp_test_XXXXXXXXXXXXXXXX'; // ← Replace with your key
 
   const options = {
     key: RAZORPAY_KEY,
@@ -1056,6 +1068,39 @@ function renderAdminProducts() {
   </div>`;
 }
 
+async function uploadProductImage(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const statusEl = document.getElementById('imageUploadStatus');
+  statusEl.textContent = '⏳ Uploading image...';
+  statusEl.style.color = 'var(--gold)';
+  try {
+    const fileName = 'img_' + Date.now() + '_' + file.name.replace(/\s+/g, '_');
+    const { error } = await db.storage.from('products').upload(fileName, file, { contentType: file.type, upsert: true });
+    if (error) throw error;
+    const { data: urlData } = db.storage.from('products').getPublicUrl(fileName);
+    document.getElementById('fieldImage').value = urlData.publicUrl;
+    showImagePreview(urlData.publicUrl);
+    statusEl.textContent = '✅ Image uploaded successfully!';
+    statusEl.style.color = 'var(--green)';
+  } catch(e) {
+    statusEl.textContent = '❌ Upload failed: ' + e.message;
+    statusEl.style.color = '#fc8181';
+  }
+  input.value = '';
+}
+
+function showImagePreview(url) {
+  if (!url) {
+    document.getElementById('imagePreviewWrap').style.display = 'none';
+    return;
+  }
+  const wrap = document.getElementById('imagePreviewWrap');
+  const img = document.getElementById('imagePreview');
+  img.src = url;
+  wrap.style.display = 'block';
+}
+
 function openFormModal(editId = null) {
   clearFormModal();
   document.getElementById('editProductId').value = editId || '';
@@ -1069,6 +1114,7 @@ function openFormModal(editId = null) {
       document.getElementById('fieldPrice').value = p.price;
       document.getElementById('fieldOrigPrice').value = p.originalPrice || '';
       document.getElementById('fieldImage').value = p.image || '';
+      if (p.image) showImagePreview(p.image);
       document.getElementById('fieldDownload').value = p.download_link || '';
       document.getElementById('fieldCategory').value = p.category || '';
     }
@@ -1080,6 +1126,8 @@ function clearFormModal() {
   ['fieldName','fieldDesc','fieldFeatures','fieldPrice','fieldOrigPrice','fieldImage','fieldDownload','fieldCategory'].forEach(id => { document.getElementById(id).value = ''; });
   document.getElementById('editProductId').value = '';
   document.getElementById('formModalTitle').textContent = 'Add New Product';
+  document.getElementById('imagePreviewWrap').style.display = 'none';
+  document.getElementById('imageUploadStatus').textContent = '';
 }
 
 function closeFormModal() { document.getElementById('productFormModal').classList.remove('show'); }
